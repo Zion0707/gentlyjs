@@ -15,19 +15,12 @@ class Home extends Component {
         const rect1 = new Rect({
             left: 20,
             top: 20,
-            width: 100,
-            height: 100,
+            width: 10,
+            height: 10,
             fillColor:'blue',
         });
-        const rect2 = new Rect({
-            left: 120,
-            top: 120,
-            width: 100,
-            height: 100,
-            strokeColor:'blue',
-        });
         console.log(scene);
-        scene.append(rect1, rect2);
+        scene.append(rect1);
     }
     render() {
         return (

@@ -56,6 +56,27 @@ class Scene {
 }
 
 /**
+* class Group
+* Group 元素创建一个分组。
+* */
+
+class Group {
+    constructor(argObj){
+        const def = {
+            left: 0,
+            top: 0,
+        }
+    
+        const config = Object.assign(def, argObj);
+        const { left , top } = config;
+
+        
+    };
+}
+
+
+
+/**
  * class Rect
  * Rect 元素可以绘制一个矩形。
  * */
