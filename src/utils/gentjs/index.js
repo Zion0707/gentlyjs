@@ -62,8 +62,8 @@ class Scene {
 class Rect {
     constructor(argObj) {
         const def = {
-            x: 0, // 元素 X 轴坐标 (type: number, def: 0px)
-            y: 0, // 元素 Y 轴坐标 (type: number, def: 0px)
+            left: 0, // 元素 X 轴坐标 (type: number, def: 0px)
+            top: 0, // 元素 Y 轴坐标 (type: number, def: 0px)
             width: 0, // 矩形宽度 (type: number, def: 0px)
             height: 0, // 矩形高度 (type: number, def: 0px)
             lineWidth: 0, //描边宽度 (type: number, def: 1px)
@@ -71,19 +71,19 @@ class Rect {
             fillColor: '', //填充颜色 (type: color, def:  空字符串)
         };
         const config = Object.assign(def, argObj);
-        const { x, y, width, height, lineWidth, strokeColor, fillColor } = config;
+        const { left, top, width, height, lineWidth, strokeColor, fillColor } = config;
         globalCtx.beginPath();
         globalCtx.lineWidth = lineWidth;
         // 描边矩形
         if( strokeColor ){
             globalCtx.strokeStyle = strokeColor;
-            globalCtx.strokeRect(x, y, width, height);
+            globalCtx.strokeRect(left, top, width, height);
             console.log(strokeColor);
         }
         // 填充矩形
         if( fillColor ){
             globalCtx.fillStyle = fillColor;
-            globalCtx.fillRect(x, y, width, height);
+            globalCtx.fillRect(left, top, width, height);
             console.log(fillColor);
         }
 

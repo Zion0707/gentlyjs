@@ -13,15 +13,15 @@ class Home extends Component {
         });
 
         const rect1 = new Rect({
-            x: 20,
-            y: 20,
+            left: 20,
+            top: 20,
             width: 100,
             height: 100,
             fillColor:'blue',
         });
         const rect2 = new Rect({
-            x: 120,
-            y: 120,
+            left: 120,
+            top: 120,
             width: 100,
             height: 100,
             strokeColor:'blue',
