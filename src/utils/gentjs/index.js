@@ -92,6 +92,85 @@ const clearCanvas = beforeItem => {
     );
 };
 
+/**
+* 
+* @param ctx 2d上下文对象
+* @param options 全部参数
+*/
+const textEllipsis = (ctx, options)=>{
+    let x = options.left;
+    let y = options.top;
+    let text = options.text;
+    if (typeof text !== 'string' || typeof x !== 'number' || typeof y !== 'number') {
+        return;
+    }
+    let defaultOpt = {
+        maxWidth: 100,
+        lineHeight: 20,
+        rows: 1000,
+        textIndent: 0,
+        fontSize: 20
+    };
+    let params = Object.assign({}, defaultOpt, options);
+    // 分割文本
+    let textArr = text.split('');
+    // 文本最终占据高度
+    let textHeight = 0;
+    // 每行显示的文字
+    let textOfLine = '';
+    // 控制行数
+    let limitRow = params.rows;
+    let rowCount = 0;
+    // 循环分割的文字数组
+    for (let i = 0; i < textArr.length; i++) {
+        // 获取单个文字或字符
+        let singleWord = textArr[i];
+        // 连接文字
+        let connectText = textOfLine + singleWord;
+        // 计算接下来要写的是否是最后一行
+        let isLimitRow = limitRow ? rowCount === (limitRow - 1) : false;
+        // 最后一行则显示省略符,否则显示连接文字
+        let measureText = isLimitRow ? (connectText + '...') : connectText;
+        // 设置字体并计算宽度,判断是否存在首行缩进
+        ctx.font = `${params.fontSize}px "MicroSoft YaHei"`;
+        let width = ctx.measureText(measureText).width;
+        // 首行需要缩进满足条件
+        let conditionIndent = (params.textIndent && rowCount === 0);
+        let measureWidth = conditionIndent ? (width + params.textIndent) : width;
+        // 大于限制宽度且已绘行数不是最后一行，则写文字
+        if (measureWidth > params.maxWidth && i > 0 && rowCount !== limitRow) {
+            // 如果是最后一行，显示计算文本
+            let canvasText = isLimitRow ? measureText : textOfLine;
+            let xPos = conditionIndent ? (x + params.textIndent) : x;
+            // 写文字
+            ctx.fillStyle = '#000';
+            ctx.fillText(canvasText, xPos, y);
+            // 下一行文字
+            textOfLine = singleWord;
+            // 记录下一行位置
+            y += params.lineHeight;
+            // 计算文本高度
+            textHeight += params.lineHeight;
+            rowCount++;
+ 
+            if (isLimitRow) {
+                break;
+            }
+        } else {
+            // 不大于最大宽度
+            textOfLine = connectText;
+        }
+    }
+    if (rowCount !== limitRow) {
+        let xPos = (params.textIndent && rowCount === 0) ? (x + params.textIndent) : x;
+        ctx.fillStyle = '#000';
+        ctx.fillText(textOfLine, xPos, y);
+    }
+    // 计算文字总高度
+    let textHeightVal = rowCount < limitRow ? (textHeight + params.lineHeight) : textHeight;
+    return textHeightVal;
+}
+
 //  ---------------------------- 全局方法 end -----------------------------------
 
 /**
@@ -118,12 +197,12 @@ class Gent {
             groupLeft = _self.left;
             groupTop = _self.top;
         }
-
-        globalCtx.beginPath();
-        globalCtx.lineWidth = itemLineWidth;
-
         const realLeft = groupLeft + itemLeft;
         const realTop = groupTop + itemTop;
+
+        // 绘制开始
+        globalCtx.beginPath();
+        globalCtx.lineWidth = itemLineWidth;
         // 描边矩形
         if (itemStrokeColor) {
             globalCtx.strokeStyle = itemStrokeColor;
@@ -140,15 +219,29 @@ class Gent {
     // Label文本 - 绘制
     _gentLabelDraw(item) {
         const _self = this;
-        const {
-            text: itemText,
+        let {
             left: itemLeft,
             top: itemTop,
-            width: itemWidth,
-            height: itemHeight,
+            fontSize: itemFontSize,
         } = item;
 
-        console.log(itemText);
+        let groupLeft = 0;
+        let groupTop = 0;
+        if (_self.type === 'Group') {
+            groupLeft = _self.left;
+            groupTop = _self.top;
+        }
+        // 转换成真是距离
+        const realLeft = groupLeft + itemLeft;
+        const realTop = groupTop + itemTop + parseInt(itemFontSize) / 2;
+        // 转换文本大小
+        itemFontSize = (getArgsType(itemFontSize) === 'String' ? itemFontSize : itemFontSize + 'px');
+        
+        textEllipsis(globalCtx, Object.assign(item,{
+            left: realLeft,
+            top: realTop,
+            fontSize: itemFontSize
+        }));
     }
 
     // 重新绘制方法
@@ -321,10 +414,16 @@ class Label extends Gent {
             top: 0,
             width: '',
             height: '',
-            font: '16px sans-serif',
+            fontSize: '16px',
+            fontFamily: 'sans-serif',
+            fontWeight: 'normal', //字体粗细
             textAlign: 'left',
+            lineHeight: '20px',
             strokeColor: '',
-            fillColor: '',
+            fillColor: '#000000',
+            verticalAlign: 'middle',
+            rows:1000, // 限制行数
+            textIndent:0, //首行缩进
             type: 'Label', //标识，为了好区分
             id: randomRangeId(20), //生成随机id，唯一标识
         };
