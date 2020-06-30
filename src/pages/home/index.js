@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Scene, Rect, Group } from '@/utils/gentjs';
+import { Scene, Rect, Group, Label } from '@/utils/gentjs';
 import './index.less';
 class Home extends Component {
     constructor(props) {
@@ -20,11 +20,23 @@ class Home extends Component {
             fillColor:'blue',
         });
         const group1 = new Group({
-            left:10,
-            top:10,
+            left:0,
+            top:0,
+        });
+
+        const label1 = new Label({
+            text:'我是一段文本',
         })
-        group1.append(rect1);
+
+        group1.append(rect1, label1);
         scene.append(group1);
+    
+        document.getElementsByTagName('canvas')[0].addEventListener('click', ()=>{
+            group1.attr({
+                left: 10,
+                top:10
+            })
+        });
     }
     componentDidMount() {
         this.init();
