@@ -6,7 +6,7 @@
 //  ---------------------------- 全局变量 start -----------------------------------
 const winWidth = window.innerWidth;
 const winHeight = window.innerHeight;
-let globalCanvas = null; //canvas
+let globalCanvas = null; //canvas dom
 let globalCtx = null; //cavnas ctx
 let globalAllList = []; //所有节点存放处
 //  ---------------------------- 全局变量 end -----------------------------------
@@ -76,14 +76,14 @@ const randomRangeId = num => {
 };
 
 const clearCanvas = beforeItem => {
-    globalAllList.map(item => {
+    globalAllList.forEach((item, index) => {
+        // console.log(item);
+        // 判断数组元素里哪个对象被更改
         if (JSON.stringify(beforeItem) === JSON.stringify(item)) {
-            return item;
+            // console.log('被更改过的元素索引：' + index);
         }
-        return item;
     });
 
-    console.log(globalAllList);
     globalCtx.clearRect(
         0,
         0,
@@ -192,6 +192,53 @@ function textEllipsis(ctx, groupLeft, groupTop, options) {
  * 通用类，集成了通用功能
  * */
 class Gent {
+    // 添加元素方法
+    append() {
+        const _self = this;
+        if (_self.type === 'Group' || _self.type === 'Scene') {
+            const argArr = getArgsArr(arguments);
+            // 对传入的元素，根据对于相关方法进行绘制
+            argArr.forEach(item => {
+                const itemTypeDrawFun = `_gent${item.type}Draw`;
+                if (_self[itemTypeDrawFun]) {
+                    _self[itemTypeDrawFun](item);
+                }
+                globalAllList.push(item);
+            });
+        }
+    }
+
+    // 获取或设置属性值
+    attr() {
+        if (arguments.length === 0) {
+            return;
+        } 
+        if (getArgsType(arguments[0]) === 'String') {
+            // 如果传入的是字符串，那么返回对应的值，是get的方式，只需要返回对应的数据给前端即可
+            return this[arguments[0]];
+        } 
+        if (getArgsType(arguments[0]) === 'Object') {
+            // 如果传入的是对象，那么设置对应的值，是set的方式，那么就是修改了元素，则需要进行重新绘制
+            for (let item in arguments[0]) {
+                this[item] = arguments[0][item];
+            }
+            // 属性更改之后，需要重新渲染画布，这里给了一个 beforeItem 是方便记录哪个元素被修改
+            let beforeItem = Object.assign({}, this);
+            this._redraw(beforeItem);
+        }
+    }
+
+    // 触发事件
+    on(){
+        if(arguments.length===0){return;}
+        // arguments[1](this)
+        globalCanvas.addEventListener(arguments[0], (evt)=>{
+            arguments[1](this, evt);
+        });
+    }
+
+    // --------------------------------------------- 以下带 _（下划线）的方法都是私有方法 -----------------------------------------------
+
     // Rect矩形 - 绘制
     _gentRectDraw(item) {
         const _self = this;
@@ -239,114 +286,24 @@ class Gent {
             groupLeft = _self.left;
             groupTop = _self.top;
         }
-        
-        textEllipsis(
-            globalCtx,
-            groupLeft,
-            groupTop,
-            item
-        );
+
+        textEllipsis(globalCtx, groupLeft, groupTop, item);
     }
 
     // 重新绘制方法
     _redraw(beforeItem) {
         const _self = this;
-        // 先清除画布，再把之前的元素记录拿出来
+        // 先清除画布，再重新渲染数据
         clearCanvas(beforeItem);
-        // 根据类型重新绘制
+        // 根据类型调用相关绘制方法，重新进行绘制
         globalAllList.forEach(item => {
-            switch (item.type) {
-                case 'Rect':
-                    _self._gentRectDraw(item);
-                    break;
-                case 'Label':
-                    // console.log(item);
-                    _self._gentLabelDraw(item);
-                    break;
-                default:
+            const itemTypeDrawFun = `_gent${item.type}Draw`;
+            if (_self[itemTypeDrawFun]) {
+                _self[itemTypeDrawFun](item);
             }
         });
         // console.log(globalAllList);
     }
-
-    // 添加元素方法
-    append() {
-        const _self = this;
-        if (_self.type === 'Group' || _self.type === 'Scene') {
-            const argArr = getArgsArr(arguments);
-            // 对传入的元素进行判断处理并绘制
-            argArr.forEach(item => {
-                // console.log(argArr);
-                switch (item.type) {
-                    case 'Rect':
-                        _self._gentRectDraw(item);
-                        break;
-                    case 'Label':
-                        // console.log(item);
-                        _self._gentLabelDraw(item);
-                        break;
-                    default:
-                }
-                globalAllList.push(item);
-            });
-        }
-    }
-
-    // 获取或设置属性值
-    attr() {
-        let beforeItem = Object.assign({}, this);
-        if (arguments.length === 0) {
-            return;
-        } else if (getArgsType(arguments[0]) === 'String') {
-            // 如果传入的是字符串，那么返回对应的值，是get的方式
-            return this[arguments[0]];
-        } else if (getArgsType(arguments[0]) === 'Object') {
-            // 如果传入的是对象，那么设置对应的值，是set的方式
-            // console.log(arguments[0]);
-            for (let item in arguments[0]) {
-                // console.log(item);
-                this[item] = arguments[0][item];
-            }
-        }
-        // 属性更改之后，先把画布中的元素，需要重新渲染画布
-        this._redraw(beforeItem);
-    }
-}
-
-/**
- * class Label
- * Label 绘制一段文本。
- * */
-class Label extends Gent {
-    constructor(argObj) {
-        super();
-        const def = {
-            text: '',
-            left: 0,
-            top: 0,
-            width: 100, //限制宽度即可垂直显示
-            fontSize: 14,
-            lineHeight: 14,
-            fontFamily: 'sans-serif',
-            fontWeight: 'normal', //字体粗细
-            strokeColor: '',
-            fillColor: '#000000',
-            textAlign: 'left',
-            verticalAlign: 'middle',
-            rows: 1000, // 限制行数
-            textIndent: 0, //首行缩进
-            type: 'Label', //标识，为了好区分
-            id: randomRangeId(20), //生成随机id，唯一标识
-        };
-        const config = Object.assign(def, argObj);
-
-        // 把参数暴露出去
-        for (let item in config) {
-            this[item] = config[item];
-        }
-    }
-    // 重载继承
-    append() {}
 }
 
 /**
@@ -442,5 +399,44 @@ class Rect extends Gent {
     // 重载继承
     append() {}
 }
+
+
+
+/**
+ * class Label
+ * Label 绘制一段文本。
+ * */
+class Label extends Gent {
+    constructor(argObj) {
+        super();
+        const def = {
+            text: '',
+            left: 0,
+            top: 0,
+            width: 100, //限制宽度即可垂直显示
+            fontSize: 14,
+            lineHeight: 14,
+            fontFamily: 'sans-serif',
+            fontWeight: 'normal', //字体粗细
+            strokeColor: '',
+            fillColor: '#000000',
+            textAlign: 'left',
+            verticalAlign: 'middle',
+            rows: 1000, // 限制行数
+            textIndent: 0, //首行缩进
+            type: 'Label', //标识，为了好区分
+            id: randomRangeId(20), //生成随机id，唯一标识
+        };
+        const config = Object.assign(def, argObj);
+
+        // 把参数暴露出去
+        for (let item in config) {
+            this[item] = config[item];
+        }
+    }
+    // 重载继承
+    append() {}
+}
+
 
 export { Scene, Rect, Group, Label };
