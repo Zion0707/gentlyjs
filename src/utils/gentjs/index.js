@@ -76,14 +76,14 @@ const randomRangeId = num => {
 };
 
 const clearCanvas = beforeItem => {
-    globalAllList.map((item, index) => {
+    globalAllList.map(item => {
         if (JSON.stringify(beforeItem) === JSON.stringify(item)) {
-            console.log(index);
             return item;
         }
         return item;
     });
 
+    console.log(globalAllList);
     globalCtx.clearRect(
         0,
         0,
@@ -93,27 +93,19 @@ const clearCanvas = beforeItem => {
 };
 
 /**
-* 
-* @param ctx 2d上下文对象
-* @param options 全部参数
-*/
-const textEllipsis = (ctx, options)=>{
-    let x = options.left;
-    let y = options.top;
-    let text = options.text;
-    if (typeof text !== 'string' || typeof x !== 'number' || typeof y !== 'number') {
-        return;
-    }
-    let defaultOpt = {
-        maxWidth: 100,
-        lineHeight: 20,
-        rows: 1000,
-        textIndent: 0,
-        fontSize: 20
-    };
-    let params = Object.assign({}, defaultOpt, options);
+ *
+ * @param ctx 2d上下文对象
+ * @param options 全部参数
+ * 参考网址：https://blog.csdn.net/aassdffgdhbdb/article/details/88610317
+ */
+function textEllipsis(ctx, groupLeft, groupTop, options) {
+    let params = Object.assign({}, options);
+    // 转换成真是距离
+    params.left = groupLeft + params.left;
+    params.top = groupTop + params.top + parseInt(options.fontSize) / 2;
+
     // 分割文本
-    let textArr = text.split('');
+    let textArr = params.text.split('');
     // 文本最终占据高度
     let textHeight = 0;
     // 每行显示的文字
@@ -121,6 +113,7 @@ const textEllipsis = (ctx, options)=>{
     // 控制行数
     let limitRow = params.rows;
     let rowCount = 0;
+
     // 循环分割的文字数组
     for (let i = 0; i < textArr.length; i++) {
         // 获取单个文字或字符
@@ -128,31 +121,40 @@ const textEllipsis = (ctx, options)=>{
         // 连接文字
         let connectText = textOfLine + singleWord;
         // 计算接下来要写的是否是最后一行
-        let isLimitRow = limitRow ? rowCount === (limitRow - 1) : false;
+        let isLimitRow = limitRow ? rowCount === limitRow - 1 : false;
         // 最后一行则显示省略符,否则显示连接文字
-        let measureText = isLimitRow ? (connectText + '...') : connectText;
+        let measureText = isLimitRow ? connectText + '...' : connectText;
         // 设置字体并计算宽度,判断是否存在首行缩进
-        ctx.font = `${params.fontSize}px "MicroSoft YaHei"`;
+        ctx.font = `${params.fontSize}px ${params.fontWeight} ${params.fontFamily}`;
         let width = ctx.measureText(measureText).width;
         // 首行需要缩进满足条件
-        let conditionIndent = (params.textIndent && rowCount === 0);
-        let measureWidth = conditionIndent ? (width + params.textIndent) : width;
+        let conditionIndent = params.textIndent && rowCount === 0;
+        let measureWidth = conditionIndent ? width + params.textIndent : width;
         // 大于限制宽度且已绘行数不是最后一行，则写文字
-        if (measureWidth > params.maxWidth && i > 0 && rowCount !== limitRow) {
+        if (measureWidth > params.width && i > 0 && rowCount !== limitRow) {
             // 如果是最后一行，显示计算文本
             let canvasText = isLimitRow ? measureText : textOfLine;
-            let xPos = conditionIndent ? (x + params.textIndent) : x;
+            let xPos = conditionIndent
+                ? params.left + params.textIndent
+                : params.left;
+            let yPos = params.top + params.lineHeight / 2;
+
             // 写文字
-            ctx.fillStyle = '#000';
-            ctx.fillText(canvasText, xPos, y);
+            if (params.fillColor) {
+                ctx.fillStyle = params.fillColor;
+                ctx.fillText(canvasText, xPos, yPos);
+            }
+            if (params.strokeColor) {
+                ctx.strokeStyle = params.strokeColor;
+                ctx.strokeText(canvasText, xPos, yPos);
+            }
             // 下一行文字
             textOfLine = singleWord;
             // 记录下一行位置
-            y += params.lineHeight;
+            params.top += params.lineHeight;
             // 计算文本高度
             textHeight += params.lineHeight;
             rowCount++;
- 
             if (isLimitRow) {
                 break;
             }
@@ -162,12 +164,24 @@ const textEllipsis = (ctx, options)=>{
         }
     }
     if (rowCount !== limitRow) {
-        let xPos = (params.textIndent && rowCount === 0) ? (x + params.textIndent) : x;
-        ctx.fillStyle = '#000';
-        ctx.fillText(textOfLine, xPos, y);
+        let xPos =
+            params.textIndent && rowCount === 0
+                ? params.left + params.textIndent
+                : params.left;
+        let yPos = params.top + params.lineHeight / 2;
+        if (params.fillColor) {
+            ctx.fillStyle = params.fillColor;
+            ctx.fillText(textOfLine, xPos, yPos);
+        }
+        if (params.strokeColor) {
+            ctx.strokeStyle = params.strokeColor;
+            ctx.strokeText(textOfLine, xPos, yPos);
+        }
     }
+
     // 计算文字总高度
-    let textHeightVal = rowCount < limitRow ? (textHeight + params.lineHeight) : textHeight;
+    let textHeightVal =
+        rowCount < limitRow ? textHeight + params.lineHeight : textHeight;
     return textHeightVal;
 }
 
@@ -219,29 +233,19 @@ class Gent {
     // Label文本 - 绘制
     _gentLabelDraw(item) {
         const _self = this;
-        let {
-            left: itemLeft,
-            top: itemTop,
-            fontSize: itemFontSize,
-        } = item;
-
         let groupLeft = 0;
         let groupTop = 0;
         if (_self.type === 'Group') {
             groupLeft = _self.left;
             groupTop = _self.top;
         }
-        // 转换成真是距离
-        const realLeft = groupLeft + itemLeft;
-        const realTop = groupTop + itemTop + parseInt(itemFontSize) / 2;
-        // 转换文本大小
-        itemFontSize = (getArgsType(itemFontSize) === 'String' ? itemFontSize : itemFontSize + 'px');
         
-        textEllipsis(globalCtx, Object.assign(item,{
-            left: realLeft,
-            top: realTop,
-            fontSize: itemFontSize
-        }));
+        textEllipsis(
+            globalCtx,
+            groupLeft,
+            groupTop,
+            item
+        );
     }
 
     // 重新绘制方法
@@ -256,6 +260,7 @@ class Gent {
                     _self._gentRectDraw(item);
                     break;
                 case 'Label':
+                    // console.log(item);
                     _self._gentLabelDraw(item);
                     break;
                 default:
@@ -277,6 +282,7 @@ class Gent {
                         _self._gentRectDraw(item);
                         break;
                     case 'Label':
+                        // console.log(item);
                         _self._gentLabelDraw(item);
                         break;
                     default:
@@ -305,6 +311,42 @@ class Gent {
         // 属性更改之后，先把画布中的元素，需要重新渲染画布
         this._redraw(beforeItem);
     }
+}
+
+/**
+ * class Label
+ * Label 绘制一段文本。
+ * */
+class Label extends Gent {
+    constructor(argObj) {
+        super();
+        const def = {
+            text: '',
+            left: 0,
+            top: 0,
+            width: 100, //限制宽度即可垂直显示
+            fontSize: 14,
+            lineHeight: 14,
+            fontFamily: 'sans-serif',
+            fontWeight: 'normal', //字体粗细
+            strokeColor: '',
+            fillColor: '#000000',
+            textAlign: 'left',
+            verticalAlign: 'middle',
+            rows: 1000, // 限制行数
+            textIndent: 0, //首行缩进
+            type: 'Label', //标识，为了好区分
+            id: randomRangeId(20), //生成随机id，唯一标识
+        };
+        const config = Object.assign(def, argObj);
+
+        // 把参数暴露出去
+        for (let item in config) {
+            this[item] = config[item];
+        }
+    }
+    // 重载继承
+    append() {}
 }
 
 /**
@@ -388,43 +430,6 @@ class Rect extends Gent {
             type: 'Rect', //标识，为了好区分
             name: '', //设定元素的name
             show: true, //控制元素显示隐藏
-            id: randomRangeId(20), //生成随机id，唯一标识
-        };
-        const config = Object.assign(def, argObj);
-
-        // 把参数暴露出去
-        for (let item in config) {
-            this[item] = config[item];
-        }
-    }
-    // 重载继承
-    append() {}
-}
-
-/**
- * class Label
- * Label 绘制一段文本。
- * */
-class Label extends Gent {
-    constructor(argObj) {
-        super();
-        const def = {
-            text: '',
-            left: 0,
-            top: 0,
-            width: '',
-            height: '',
-            fontSize: '16px',
-            fontFamily: 'sans-serif',
-            fontWeight: 'normal', //字体粗细
-            textAlign: 'left',
-            lineHeight: '20px',
-            strokeColor: '',
-            fillColor: '#000000',
-            verticalAlign: 'middle',
-            rows:1000, // 限制行数
-            textIndent:0, //首行缩进
-            type: 'Label', //标识，为了好区分
             id: randomRangeId(20), //生成随机id，唯一标识
         };
         const config = Object.assign(def, argObj);

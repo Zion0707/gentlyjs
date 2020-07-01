@@ -19,16 +19,27 @@ class Home extends Component {
             height: 30,
             fillColor: 'blue',
         });
+        const rect2 = new Rect({
+            left: 20,
+            top: 20,
+            width: 30,
+            height: 30,
+            fillColor: 'red',
+        });
         const label1 = new Label({
-            text: '我是一段文本我是一段文本',
-            fontSize:30
+            text: '冶炼铸造机械制造玻璃陶瓷食品饲料汽车制造',
+            lineHeight: 14,
+            left:0,
+            top:0,
+            width: 30,
+            textAlign:'center'
         });
         const group1 = new Group({
             left: 0,
             top: 0,
         });
 
-        group1.append(rect1, label1);
+        group1.append(rect1, rect2, label1);
         scene.append(group1);
 
         document.getElementsByTagName('canvas')[0].addEventListener('click', () => {
