@@ -8,7 +8,7 @@ const winWidth = window.innerWidth;
 const winHeight = window.innerHeight;
 let globalCanvas = null; //canvas dom
 let globalCtx = null; //cavnas ctx
-let globalAllList = []; //所有节点存放处
+let globalElList = []; //所有节点存放处
 //  ---------------------------- 全局变量 end -----------------------------------
 
 //  ---------------------------- 全局方法 start -----------------------------------
@@ -29,34 +29,32 @@ const getArgsArr = args => {
     }
     return argArr;
 };
+
 /**
  * 根据传入的参数，返回数据类型
  * @param { type: any, desc: 传入的单个参数 } arg
  * */
 const getArgsType = arg => {
-    switch (Object.prototype.toString.call(arg)) {
-        case '[object String]':
-            return 'String';
-        case '[object Number]':
-            return 'Number';
-        case '[object Boolean]':
-            return 'Boolean';
-        case '[object Object]':
-            return 'Object';
-        case '[object Array]':
-            return 'Array';
-        case '[object Undefined]':
-            return 'Undefined';
-        case '[object Null]':
-            return 'Null';
-        case '[object Date]':
-            return 'Date';
-        case '[object HTMLDocument]':
-            return 'HTMLDocument';
-        case '[object global]':
-            return 'window';
-        default:
-    }
+    const typeArr = [
+        'String',
+        'Number',
+        'Boolean',
+        'Object',
+        'Array',
+        'Undefined',
+        'Null',
+        'Date',
+        'HTMLDocument',
+        'HTMLCanvasElement',
+        'Window',
+    ];
+    let type = '';
+    typeArr.forEach((item) => {
+        if (Object.prototype.toString.call(arg) === '[object ' + item + ']') {
+            type = item;
+        }
+    });
+    return type;
 };
 
 /**
@@ -76,7 +74,7 @@ const randomRangeId = num => {
 };
 
 const clearCanvas = beforeItem => {
-    globalAllList.forEach((item, index) => {
+    globalElList.forEach((item, index) => {
         // console.log(item);
         // 判断数组元素里哪个对象被更改
         if (JSON.stringify(beforeItem) === JSON.stringify(item)) {
@@ -203,7 +201,7 @@ class Gent {
                 if (_self[itemTypeDrawFun]) {
                     _self[itemTypeDrawFun](item);
                 }
-                globalAllList.push(item);
+                globalElList.push(item);
             });
         }
     }
@@ -228,12 +226,21 @@ class Gent {
         }
     }
 
-    // 触发事件
-    on(){
+    // 触发事件 事件参考：https://www.runoob.com/jsref/dom-obj-event.html
+    on(oEvent, oCallback){
         if(arguments.length===0){return;}
-        // arguments[1](this)
-        globalCanvas.addEventListener(arguments[0], (evt)=>{
-            arguments[1](this, evt);
+        // oEvent 为事件，例如：click, mouseover ...
+        globalCanvas.addEventListener(oEvent, (evt)=>{
+            let mx = evt.clientX;
+            let my = evt.clientY;
+            for (let i = 0; i < globalElList.length; i++) {
+                let xRange = mx > globalElList[i].left && mx < (globalElList[i].left + globalElList[i].width);
+                let yRange = my > globalElList[i].top && my < (globalElList[i].top + globalElList[i].height);
+                let id = globalElList[i].id === this.id;
+                if (xRange && yRange && id) {
+                    oCallback(this, evt);
+                }
+            }
         });
     }
 
@@ -296,13 +303,13 @@ class Gent {
         // 先清除画布，再重新渲染数据
         clearCanvas(beforeItem);
         // 根据类型调用相关绘制方法，重新进行绘制
-        globalAllList.forEach(item => {
+        globalElList.forEach(item => {
             const itemTypeDrawFun = `_gent${item.type}Draw`;
             if (_self[itemTypeDrawFun]) {
                 _self[itemTypeDrawFun](item);
             }
         });
-        // console.log(globalAllList);
+        // console.log(globalElList);
     }
 }
 

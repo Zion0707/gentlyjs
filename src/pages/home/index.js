@@ -20,8 +20,8 @@ class Home extends Component {
             fillColor: 'blue',
         });
         const rect2 = new Rect({
-            left: 20,
-            top: 20,
+            left: 100,
+            top: 100,
             width: 30,
             height: 30,
             fillColor: 'red',
@@ -39,26 +39,27 @@ class Home extends Component {
             top: 0,
         });
 
-        rect1.on('click', (item, evt)=>{
+        rect1.on('click', (item, evt) => {
             console.log('blue:', item, evt);
         });
-        rect2.on('click', (item, evt)=>{
+        rect2.on('click', (item, evt) => {
             console.log('red:', item, evt);
         });
 
         group1.append(rect1, rect2);
+        // scene.append(rect1, rect2);
         scene.append(group1);
 
-        document.getElementsByTagName('canvas')[0].addEventListener('click', () => {
-            // rect1.attr({
-            //     left: 30, 
-            //     top: 40,
-            // })
-            group1.attr({
-                left: 20,
-                top: 20,
-            });
-        });
+        // document.getElementsByTagName('canvas')[0].addEventListener('click', () => {
+        //     // rect1.attr({
+        //     //     left: 30,
+        //     //     top: 40,
+        //     // })
+        //     group1.attr({
+        //         left: 20,
+        //         top: 20,
+        //     });
+        // });
     }
     componentDidMount() {
         this.init();
