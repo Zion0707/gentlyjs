@@ -259,7 +259,7 @@ class Gent {
         globalCanvas.addEventListener(oEvent, evt => {
             let mx = evt.clientX;
             let my = evt.clientY;
-            // 判断每个元素的边界，然后判定是点击了哪个元素
+            // 判断每个元素的边界，然后判定是点击了哪个元素，因为元素是越往后添加，层级越高，所以需要倒序进行判断
             for (let i = globalElList.length - 1; i > -1; i--) {
                 let xRange =
                     mx > globalElList[i].left + globalElList[i].groupLeft &&
@@ -274,7 +274,7 @@ class Gent {
                             globalElList[i].groupTop +
                             globalElList[i].height;
                 if (xRange && yRange) {
-                    // 关键！！！，如果倒序被触发的内容不是当前的这个元素，那么则退出循环，再次执行下个事件，进行对比
+                    // 关键！！！，如果倒序第一个被触发的内容不是当前的这个元素，那么则退出循环，再次执行下个事件，进行对比，直到匹配成功！
                     if (globalElList[i].id !== this.id) {
                         return;
                     }
@@ -337,6 +337,11 @@ class Gent {
         // 把高度返回值给label对象中，返回真实的高度
         const labelHeight = textEllipsis(globalCtx, groupLeft, groupTop, item);
         item.height = labelHeight;
+    }
+
+    // Round圆形 - 绘制
+    _gentRoundDraw(item){
+        console.log(item);
     }
 
     // 重新绘制方法
@@ -489,4 +494,22 @@ class Label extends Gent {
     append() {}
 }
 
-export { Scene, Rect, Group, Label };
+class Round extends Gent {
+    constructor(argObj) {
+        super();
+        const def = {
+            left: 0,
+            top: 0,
+            type: 'Round', //标识，为了好区分
+            id: randomRangeId(20), //生成随机id，唯一标识
+            _event: '', //标识,为了知道有哪些事件
+        };
+        const config = Object.assign(def, argObj);
+        // 把参数暴露出去
+        for (let item in config) {
+            this[item] = config[item];
+        }
+    }
+}
+
+export { Scene, Rect, Group, Label, Round };
