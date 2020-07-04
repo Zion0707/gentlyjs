@@ -17,7 +17,7 @@ let globalElList = []; //所有节点存放处
  * @param { type: any, desc: 传入的参数 } args
  */
 const getArgsArr = args => {
-    // 获得所有传入的参数，如果第一个参数是数组的话，那么就直接取第一个数组参数作为循环对象
+    // 获得所有传入的参数，如果第一个参数是数组的话，那么就直接取第一个数组参数作为循环对象，后面参数则省略
     if (args.length === 0) return;
     let argArr = [];
     if (args[0] instanceof Array) {
@@ -49,7 +49,7 @@ const getArgsType = arg => {
         'Window',
     ];
     let type = '';
-    typeArr.forEach((item) => {
+    typeArr.forEach(item => {
         if (Object.prototype.toString.call(arg) === '[object ' + item + ']') {
             type = item;
         }
@@ -93,6 +93,8 @@ const clearCanvas = beforeItem => {
 /**
  *
  * @param ctx 2d上下文对象
+ * @param groupLeft 组的left值
+ * @param groupTop 组的top值
  * @param options 全部参数
  * 参考网址：https://blog.csdn.net/aassdffgdhbdb/article/details/88610317
  */
@@ -196,13 +198,33 @@ class Gent {
         if (_self.type === 'Group' || _self.type === 'Scene') {
             const argArr = getArgsArr(arguments);
             // 对传入的元素，根据对于相关方法进行绘制
-            argArr.forEach(item => {
-                const itemTypeDrawFun = `_gent${item.type}Draw`;
-                if (_self[itemTypeDrawFun]) {
-                    _self[itemTypeDrawFun](item);
-                }
-                globalElList.push(item);
-            });
+            let argArrDraw = groupAttr => {
+                argArr.forEach(item => {
+                    const itemTypeDrawFun = `_gent${item.type}Draw`;
+                    if (_self[itemTypeDrawFun]) {
+                        _self[itemTypeDrawFun](item);
+                    }
+                    // 如果存在group参数，那么则需要把group参数给子级
+                    if (groupAttr) {
+                        item.groupLeft = groupAttr.left;
+                        item.groupTop = groupAttr.top;
+                        item.groupWidth = groupAttr.width;
+                        item.groupHeight = groupAttr.height;
+                    }
+                    globalElList.push(item);
+                });
+            };
+
+            // 如果是组的情况下才获取
+            if (_self.type === 'Group') {
+                // 延时是为了正确获取到group的left值
+                var timer = setTimeout(() => {
+                    argArrDraw(_self);
+                    clearTimeout(timer);
+                });
+            } else {
+                argArrDraw();
+            }
         }
     }
 
@@ -210,11 +232,11 @@ class Gent {
     attr() {
         if (arguments.length === 0) {
             return;
-        } 
+        }
         if (getArgsType(arguments[0]) === 'String') {
             // 如果传入的是字符串，那么返回对应的值，是get的方式，只需要返回对应的数据给前端即可
             return this[arguments[0]];
-        } 
+        }
         if (getArgsType(arguments[0]) === 'Object') {
             // 如果传入的是对象，那么设置对应的值，是set的方式，那么就是修改了元素，则需要进行重新绘制
             for (let item in arguments[0]) {
@@ -227,21 +249,38 @@ class Gent {
     }
 
     // 触发事件 事件参考：https://www.runoob.com/jsref/dom-obj-event.html
-    on(oEvent, oCallback){
-        if(arguments.length===0){return;}
+    on(oEvent, oCallback) {
+        if (arguments.length === 0) {
+            return;
+        }
+        // 给对象添加事件标记
+        this._event += this._event === '' ? oEvent : oEvent + '|';
         // oEvent 为事件，例如：click, mouseover ...
-        globalCanvas.addEventListener(oEvent, (evt)=>{
+        globalCanvas.addEventListener(oEvent, evt => {
+            const _self = this;
             let mx = evt.clientX;
             let my = evt.clientY;
-            for (let i = 0; i < globalElList.length; i++) {
-                let xRange = mx > globalElList[i].left && mx < (globalElList[i].left + globalElList[i].width);
-                let yRange = my > globalElList[i].top && my < (globalElList[i].top + globalElList[i].height);
-                let id = globalElList[i].id === this.id;
+            // 判断每个元素的边界，然后判定是点击了哪个元素
+            for (let i = globalElList.length - 1; i > -1; i--) {
+                let xRange =
+                    mx > globalElList[i].left + globalElList[i].groupLeft &&
+                    mx <
+                        globalElList[i].left +
+                            globalElList[i].groupLeft +
+                            globalElList[i].width;
+                let yRange =
+                    my > globalElList[i].top + globalElList[i].groupTop &&
+                    my <
+                        globalElList[i].top +
+                            globalElList[i].groupTop +
+                            globalElList[i].height;
+                let id = globalElList[i].id === _self.id;
                 if (xRange && yRange && id) {
-                    oCallback(this, evt);
+                    oCallback(_self, evt);
                 }
             }
         });
+
     }
 
     // --------------------------------------------- 以下带 _（下划线）的方法都是私有方法 -----------------------------------------------
@@ -284,6 +323,7 @@ class Gent {
             // console.log(itemFillColor);
         }
     }
+
     // Label文本 - 绘制
     _gentLabelDraw(item) {
         const _self = this;
@@ -293,8 +333,9 @@ class Gent {
             groupLeft = _self.left;
             groupTop = _self.top;
         }
-
-        textEllipsis(globalCtx, groupLeft, groupTop, item);
+        // 把高度返回值给label对象中，返回真实的高度
+        const labelHeight = textEllipsis(globalCtx, groupLeft, groupTop, item);
+        item.height = labelHeight;
     }
 
     // 重新绘制方法
@@ -363,6 +404,7 @@ class Group extends Gent {
             type: 'Group', //标识，为了好区分
             name: '', //设定元素的name
             id: randomRangeId(20), //生成随机id，唯一标识
+            _event: '', //标识,为了知道有哪些事件
         };
 
         const config = Object.assign(def, argObj);
@@ -395,6 +437,7 @@ class Rect extends Gent {
             name: '', //设定元素的name
             show: true, //控制元素显示隐藏
             id: randomRangeId(20), //生成随机id，唯一标识
+            _event: '', //标识,为了知道有哪些事件
         };
         const config = Object.assign(def, argObj);
 
@@ -406,8 +449,6 @@ class Rect extends Gent {
     // 重载继承
     append() {}
 }
-
-
 
 /**
  * class Label
@@ -421,6 +462,7 @@ class Label extends Gent {
             left: 0,
             top: 0,
             width: 100, //限制宽度即可垂直显示
+            height: 14, //默认为14
             fontSize: 14,
             lineHeight: 14,
             fontFamily: 'sans-serif',
@@ -433,6 +475,7 @@ class Label extends Gent {
             textIndent: 0, //首行缩进
             type: 'Label', //标识，为了好区分
             id: randomRangeId(20), //生成随机id，唯一标识
+            _event: '', //标识,为了知道有哪些事件
         };
         const config = Object.assign(def, argObj);
 
@@ -444,6 +487,5 @@ class Label extends Gent {
     // 重载继承
     append() {}
 }
-
 
 export { Scene, Rect, Group, Label };
