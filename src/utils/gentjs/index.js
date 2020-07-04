@@ -257,7 +257,6 @@ class Gent {
         this._event += this._event === '' ? oEvent : oEvent + '|';
         // oEvent 为事件，例如：click, mouseover ...
         globalCanvas.addEventListener(oEvent, evt => {
-            const _self = this;
             let mx = evt.clientX;
             let my = evt.clientY;
             // 判断每个元素的边界，然后判定是点击了哪个元素
@@ -274,13 +273,15 @@ class Gent {
                         globalElList[i].top +
                             globalElList[i].groupTop +
                             globalElList[i].height;
-                let id = globalElList[i].id === _self.id;
-                if (xRange && yRange && id) {
-                    oCallback(_self, evt);
+                if (xRange && yRange) {
+                    // 关键！！！，如果倒序被触发的内容不是当前的这个元素，那么则退出循环，再次执行下个事件，进行对比
+                    if (globalElList[i].id !== this.id) {
+                        return;
+                    }
+                    oCallback(globalElList[i], evt);
                 }
             }
         });
-
     }
 
     // --------------------------------------------- 以下带 _（下划线）的方法都是私有方法 -----------------------------------------------
