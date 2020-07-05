@@ -275,7 +275,7 @@ class Gent {
                             globalElList[i].height;
                 if (xRange && yRange) {
                     // 关键！！！，如果倒序第一个被触发的内容不是当前的这个元素，那么则退出循环，再次执行下个事件，进行对比，直到匹配成功！
-                    if (globalElList[i].id !== this.id) {
+                    if (globalElList[i]._id !== this._id) {
                         return;
                     }
                     oCallback(globalElList[i], evt);
@@ -285,7 +285,20 @@ class Gent {
     }
 
     // --------------------------------------------- 以下带 _（下划线）的方法都是私有方法 -----------------------------------------------
-
+    _getRealLeftTop(group, itemLeft, itemTop) {
+        let groupLeft = 0;
+        let groupTop = 0;
+        if (group.type === 'Group') {
+            groupLeft = group.left;
+            groupTop = group.top;
+        }
+        const realLeft = groupLeft + itemLeft;
+        const realTop = groupTop + itemTop;
+        return {
+            realLeft,
+            realTop,
+        };
+    }
     // Rect矩形 - 绘制
     _gentRectDraw(item) {
         const _self = this;
@@ -299,29 +312,61 @@ class Gent {
             fillColor: itemFillColor,
         } = item;
 
-        let groupLeft = 0;
-        let groupTop = 0;
-        if (_self.type === 'Group') {
-            groupLeft = _self.left;
-            groupTop = _self.top;
-        }
-        const realLeft = groupLeft + itemLeft;
-        const realTop = groupTop + itemTop;
-
+        const { realLeft, realTop } = _self._getRealLeftTop(
+            _self,
+            itemLeft,
+            itemTop
+        );
         // 绘制开始
         globalCtx.beginPath();
-        globalCtx.lineWidth = itemLineWidth;
         // 描边矩形
         if (itemStrokeColor) {
+            globalCtx.lineWidth = itemLineWidth;
             globalCtx.strokeStyle = itemStrokeColor;
             globalCtx.strokeRect(realLeft, realTop, itemWidth, itemHeight);
-            // console.log(itemStrokeColor);
         }
         // 填充矩形
         if (itemFillColor) {
             globalCtx.fillStyle = itemFillColor;
             globalCtx.fillRect(realLeft, realTop, itemWidth, itemHeight);
-            // console.log(itemFillColor);
+        }
+    }
+
+    // Round圆形 - 绘制
+    _gentRoundDraw(item) {
+        console.log(item);
+        const _self = this;
+        const { 
+            left: itemLeft, 
+            top: itemTop,
+            startAngle: itemStartAngle,
+            endAngle: itemEndAngle,
+            lineWidth: itemLineWidth,
+            strokeColor: itemStrokeColor,
+            fillColor: itemFillColor,
+            diameter: itemDiameter,
+         } = item;
+
+        const { realLeft, realTop } = _self._getRealLeftTop(
+            _self,
+            itemLeft,
+            itemTop
+        );
+
+        // 绘制开始
+        globalCtx.beginPath();
+        // itemEndAngle 360 表示全圆
+        globalCtx.arc(realLeft, realTop, itemDiameter/2, itemStartAngle, itemEndAngle * 0.005555555556 * Math.PI);
+        // 描边圆形
+        if (itemStrokeColor) {
+            globalCtx.lineWidth = itemLineWidth;
+            globalCtx.strokeStyle = itemStrokeColor;
+            globalCtx.stroke();
+        }
+        // 填充圆形
+        if (itemFillColor) {
+            globalCtx.fillStyle = itemFillColor;
+            globalCtx.fill();
         }
     }
 
@@ -337,11 +382,6 @@ class Gent {
         // 把高度返回值给label对象中，返回真实的高度
         const labelHeight = textEllipsis(globalCtx, groupLeft, groupTop, item);
         item.height = labelHeight;
-    }
-
-    // Round圆形 - 绘制
-    _gentRoundDraw(item){
-        console.log(item);
     }
 
     // 重新绘制方法
@@ -409,7 +449,7 @@ class Group extends Gent {
             height: 0,
             type: 'Group', //标识，为了好区分
             name: '', //设定元素的name
-            id: randomRangeId(20), //生成随机id，唯一标识
+            _id: randomRangeId(20), //生成随机id，唯一标识
             _event: '', //标识,为了知道有哪些事件
         };
 
@@ -436,13 +476,13 @@ class Rect extends Gent {
             top: 0, // 元素右边距离 (type: number, def: 0px)
             width: 0, // 矩形宽度 (type: number, def: 0px)
             height: 0, // 矩形高度 (type: number, def: 0px)
-            lineWidth: 0, //描边宽度 (type: number, def: 1px)
+            lineWidth: 1, //描边宽度 (type: number, def: 1px)
             strokeColor: '', //描边颜色 (type: color, def: 空字符串)
             fillColor: '', //填充颜色 (type: color, def:  空字符串)
             type: 'Rect', //标识，为了好区分
             name: '', //设定元素的name
             show: true, //控制元素显示隐藏
-            id: randomRangeId(20), //生成随机id，唯一标识
+            _id: randomRangeId(20), //生成随机id，唯一标识
             _event: '', //标识,为了知道有哪些事件
         };
         const config = Object.assign(def, argObj);
@@ -480,7 +520,7 @@ class Label extends Gent {
             rows: 1000, // 限制行数
             textIndent: 0, //首行缩进
             type: 'Label', //标识，为了好区分
-            id: randomRangeId(20), //生成随机id，唯一标识
+            _id: randomRangeId(20), //生成随机id，唯一标识
             _event: '', //标识,为了知道有哪些事件
         };
         const config = Object.assign(def, argObj);
@@ -494,14 +534,24 @@ class Label extends Gent {
     append() {}
 }
 
+/**
+ * class Round
+ * Round Ring 元素可以绘制一个圆环或一段环弧。
+ * */
 class Round extends Gent {
     constructor(argObj) {
         super();
         const def = {
             left: 0,
             top: 0,
+            startAngle: 0, //起始角度
+            endAngle: 360, //结束角度
+            lineWidth: 1, //描边宽度 (type: number, def: 1px)
+            strokeColor: '', //描边颜色 (type: color, def: 空字符串)
+            fillColor: '', //填充颜色 (type: color, def:  空字符串)
+            diameter: 0, // 直径
             type: 'Round', //标识，为了好区分
-            id: randomRangeId(20), //生成随机id，唯一标识
+            _id: randomRangeId(20), //生成随机id，唯一标识
             _event: '', //标识,为了知道有哪些事件
         };
         const config = Object.assign(def, argObj);

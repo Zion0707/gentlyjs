@@ -11,15 +11,21 @@ class Home extends Component {
         const scene = new Scene({
             el: stage,
         });
-
+        // 组
         const group1 = new Group({
-            left:10,
-            top:10,
+            left:0,
+            top:0,
         });
-
+        // 圆
         const round1 = new Round({
-            left: 0,
-            top: 0,
+            left: 100,
+            top: 100,
+            startAngle:0,
+            endAngle:360,
+            lineWidth:0,
+            fillColor:'red',
+            strokeColor:'blue',
+            diameter: 30
         });
 
         group1.append(round1);
