@@ -22,7 +22,7 @@ class Home extends Component {
             top: 100,
             startAngle:0,
             endAngle:360,
-            lineWidth:0,
+            lineWidth:5,
             fillColor:'red',
             strokeColor:'blue',
             diameter: 30
