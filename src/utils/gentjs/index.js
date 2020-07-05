@@ -330,6 +330,8 @@ class Gent {
             globalCtx.fillStyle = itemFillColor;
             globalCtx.fillRect(realLeft, realTop, itemWidth, itemHeight);
         }
+        // 绘制结束
+        globalCtx.closePath();
     }
 
     // Round圆形 - 绘制
@@ -368,6 +370,8 @@ class Gent {
             globalCtx.fillStyle = itemFillColor;
             globalCtx.fill();
         }
+        // 绘制结束
+        globalCtx.closePath();
     }
 
     // Label文本 - 绘制
