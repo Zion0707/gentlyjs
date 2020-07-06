@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Scene, Rect, Group, Round } from '@/utils/gentjs';
+import { Scene, Rect, Group, Round, Path } from '@/utils/gentjs';
 import './index.less';
 class Home extends Component {
     constructor(props) {
@@ -13,35 +13,35 @@ class Home extends Component {
         });
         // 组
         const group1 = new Group({
-            left:0,
-            top:0,
+            left: 10,
+            top: 10,
         });
-        // 圆
-        const round1 = new Round({
-            left: 100,
-            top: 100,
-            startAngle:0,
-            endAngle:360,
-            lineWidth:5,
-            fillColor:'red',
-            strokeColor:'blue',
-            diameter: 30
+        // 路径
+        const path1 = new Path({
+            left: 20,
+            top: 20,
+            strokeColor: 'blue',
+            // fillColor: 'red',
+            points: [0, 0, 100, 0, 100, 100, 0, 100, 0, 0],
+            // points: [[0, 0], [100, 0], [100, 100], [0, 100], [0, 0]],
         });
 
-        group1.append(round1);
+        group1.append(path1);
         scene.append(group1);
-        
-        document.getElementsByTagName('canvas')[0].addEventListener('click', () => {
-        // group1.append(rect1, rect2);
-            // rect1.attr({
-            //     left: 30,
-            //     top: 40,
-            // })
-            // group1.attr({
-            //     left: 20,
-            //     top: 20,
-            // });
-        });
+
+        document
+            .getElementsByTagName('canvas')[0]
+            .addEventListener('click', () => {
+                // group1.append(rect1, rect2);
+                // rect1.attr({
+                //     left: 30,
+                //     top: 40,
+                // })
+                // group1.attr({
+                //     left: 20,
+                //     top: 20,
+                // });
+            });
     }
     componentDidMount() {
         this.init();

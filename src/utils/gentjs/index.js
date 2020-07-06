@@ -58,10 +58,9 @@ const getArgsType = arg => {
 };
 
 /**
- * 根据传入的数值，生成随机字符串id
+ * 根据传入的数值长度，生成随机字符串id
  * @param {type: number, desc: 随机数长度} num
  */
-
 const randomRangeId = num => {
     var returnStr = '',
         charStr =
@@ -73,6 +72,9 @@ const randomRangeId = num => {
     return returnStr;
 };
 
+/**
+ * 清除canvas画布内容
+ */
 const clearCanvas = beforeItem => {
     globalElList.forEach((item, index) => {
         // console.log(item);
@@ -89,6 +91,24 @@ const clearCanvas = beforeItem => {
         globalCanvas.getAttribute('height')
     );
 };
+
+/**
+ * 例如[1,2,3,4,5,6,7,8]变为[[1,2,3,4],[5,6,7,8]],
+ * @param {type: array, desc: 要转换的数组} arr
+ * @param {type: number, desc: 二维数组组合个数} groupNum
+ * */
+function fixedArray(arr, groupNum) {
+    var bigArray = [];
+    var smArray = [];
+    for (var i = 0; i < arr.length; i++) {
+        smArray.push(arr[i]);
+        if ((i + 1) % groupNum === 0 || i === arr.length - 1) {
+            bigArray.push(smArray);
+            smArray = [];
+        }
+    }
+    return bigArray;
+}
 
 /**
  *
@@ -336,10 +356,10 @@ class Gent {
 
     // Round圆形 - 绘制
     _gentRoundDraw(item) {
-        console.log(item);
+        // console.log(item);
         const _self = this;
-        const { 
-            left: itemLeft, 
+        const {
+            left: itemLeft,
             top: itemTop,
             startAngle: itemStartAngle,
             endAngle: itemEndAngle,
@@ -347,7 +367,7 @@ class Gent {
             strokeColor: itemStrokeColor,
             fillColor: itemFillColor,
             diameter: itemDiameter,
-         } = item;
+        } = item;
 
         const { realLeft, realTop } = _self._getRealLeftTop(
             _self,
@@ -358,7 +378,13 @@ class Gent {
         // 绘制开始
         globalCtx.beginPath();
         // itemEndAngle 360 表示全圆
-        globalCtx.arc(realLeft, realTop, itemDiameter/2, itemStartAngle, itemEndAngle * 0.005555555556 * Math.PI);
+        globalCtx.arc(
+            realLeft,
+            realTop,
+            itemDiameter / 2,
+            itemStartAngle,
+            itemEndAngle * 0.005555555556 * Math.PI
+        );
         // 描边圆形
         if (itemStrokeColor) {
             globalCtx.lineWidth = itemLineWidth;
@@ -366,6 +392,55 @@ class Gent {
             globalCtx.stroke();
         }
         // 填充圆形
+        if (itemFillColor) {
+            globalCtx.fillStyle = itemFillColor;
+            globalCtx.fill();
+        }
+        // 绘制结束
+        globalCtx.closePath();
+    }
+
+    // Path路径 - 绘制
+    _gentPathDraw(item) {
+        console.log(item);
+        const _self = this;
+        const {
+            left: itemLeft,
+            top: itemTop,
+            fillColor: itemFillColor,
+            strokeColor: itemStrokeColor,
+            close: itemClose,
+            lineWidth: itemLineWidth,
+            points: itemPoints,
+        } = item;
+        const { realLeft, realTop } = _self._getRealLeftTop(
+            _self,
+            itemLeft,
+            itemTop
+        );
+
+        // 判断传入的points数组第一个元素是否是二维数组，如果是，那么则不需要转换直接用，否则需要转换
+        // fixedArray方法，把一维数组转换成二维数组，例如[[0,0],[0, 10], [10, 0] ...]
+        const newItemPoints = getArgsType(itemPoints[0]) === 'Array' ? itemPoints : fixedArray(itemPoints, 2);
+        
+        globalCtx.beginPath();
+        newItemPoints.forEach((item, index) => {
+            globalCtx[index === 0 ? 'moveTo' : 'lineTo'](
+                item[0] + realLeft,
+                item[1] + realTop
+            );
+        });
+        // 是否闭合
+        if (itemClose) {
+            globalCtx.closePath();
+        }
+        // 描边路径
+        if (itemStrokeColor) {
+            globalCtx.itemLineWidth = itemLineWidth;
+            globalCtx.strokeStyle = itemStrokeColor;
+            globalCtx.stroke();
+        }
+        // 填充路径
         if (itemFillColor) {
             globalCtx.fillStyle = itemFillColor;
             globalCtx.fill();
@@ -540,7 +615,7 @@ class Label extends Gent {
 
 /**
  * class Round
- * Round Ring 元素可以绘制一个圆环或一段环弧。
+ * Round 元素可以绘制一个圆或圆环或一段环弧。
  * */
 class Round extends Gent {
     constructor(argObj) {
@@ -564,6 +639,38 @@ class Round extends Gent {
             this[item] = config[item];
         }
     }
+    // 重载继承
+    append() {}
 }
 
-export { Scene, Rect, Group, Label, Round };
+/**
+ * class Path
+ * Path 元素可以绘制一段路径
+ * */
+class Path extends Gent {
+    constructor(argObj) {
+        super();
+        const def = {
+            left: 0,
+            top: 0,
+            points: [], // 折线的各个顶点，例如[0, 0, 100, 0, 100, 100, 0, 100, 0, 0]就可以绘制一个正方形
+            // 或者传二维数组，这样会更加直观[[0, 0], [100, 0], [100, 100], [0, 100], [0, 0]]
+            lineWidth: 1, //描边宽度 (type: number, def: 1px)
+            strokeColor: '', //描边颜色 (type: color, def: 空字符串)
+            fillColor: '', //填充颜色 (type: color, def:  空字符串)
+            close: false, //是否闭合
+            type: 'Path', //标识，为了好区分
+            _id: randomRangeId(20), //生成随机id，唯一标识
+            _event: '', //标识,为了知道有哪些事件
+        };
+        const config = Object.assign(def, argObj);
+        // 把参数暴露出去
+        for (let item in config) {
+            this[item] = config[item];
+        }
+    }
+    // 重载继承
+    append() {}
+}
+
+export { Scene, Rect, Group, Label, Round, Path };
