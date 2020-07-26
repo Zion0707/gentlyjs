@@ -56,7 +56,9 @@ class PhotoPreview extends React.Component {
             increaseNum: 20, // 图片放大时距离空隙
         };
 
-        // this.bigImgRef = React.createRef();
+        // 获取相关元素
+        this.bigImgRef = React.createRef();
+        this.ppiRef = React.createRef();
     }
 
     // 预览图片超出window宽或高的处理
@@ -251,8 +253,48 @@ class PhotoPreview extends React.Component {
         document.body.removeAttribute('photo-preview-show');
     };
 
+    //大图被执行拖拽操作
+    bigImgMouseDown = (event) => {
+        event.preventDefault();
+        const ppiEl = this.ppiRef.current;
+        const bigImgEl = this.bigImgRef.current;
+        let diffX = event.clientX - bigImgEl.offsetLeft;
+        let diffY = event.clientY - bigImgEl.offsetTop;
+        // 鼠标移动的时候
+        bigImgEl.onmousemove = (event) => {
+            let moveX = parseFloat(event.clientX - diffX);
+            let moveY = parseFloat(event.clientY - diffY);
+            let mx = moveX > 0 ? -moveX : Math.abs(moveX);
+            let my = moveY > 0 ? -moveY : Math.abs(moveY);
+            let sl = ppiEl.scrollLeft + mx * 0.1;
+            let sr = ppiEl.scrollTop + my * 0.1;
+            if (sl <= 0) {
+                sl = 0;
+            } else if (sl >= ppiEl.scrollWidth - ppiEl.clientWidth) {
+                sl = ppiEl.scrollWidth - ppiEl.clientWidth;
+            }
+            if (sr <= 0) {
+                sr = 0;
+            } else if (sr >= ppiEl.scrollHeight - ppiEl.clientHeight) {
+                sr = ppiEl.scrollHeight - ppiEl.clientHeight;
+            }
+            ppiEl.scrollTo(sl, sr);
+        };
+        // 鼠标抬起的时候
+        bigImgEl.onmouseup = () => {
+            bigImgEl.onmousemove = null;
+            bigImgEl.onmouseup = null;
+        };
+        // 鼠标离开的时候
+        bigImgEl.onmouseout = () => {
+            bigImgEl.onmousemove = null;
+            bigImgEl.onmouseup = null;
+        };
+    };
+
     // 鼠标滚轮事件
     _psMousewheelEvent = (event) => {
+        // event.preventDefault();
         const { figureEl, tool } = this.state;
         if (figureEl && tool.mousewheel) {
             if (event.wheelDelta > 0) {
@@ -345,7 +387,7 @@ class PhotoPreview extends React.Component {
                     ? ReactDOM.createPortal(
                           <>
                               <figure className="photo-preview">
-                                  <div className="photo-preview__in">
+                                  <div className="photo-preview__in" ref={this.ppiRef}>
                                       {loadEl ? (
                                           <div className="photo-preview__loading"></div>
                                       ) : (
@@ -358,13 +400,11 @@ class PhotoPreview extends React.Component {
                                                       marginTop: `-${increaseNum}px`,
                                                   }}
                                               ></span>
-                                              {/* ref={this.bigImgRef} */}
                                               <img
                                                   src={imgAttr.src}
                                                   alt={imgAttr.alt}
-                                                  onMouseDown={this.psImgMouseDown}
-                                                  onMouseMove={this.psImgMouseMove}
-                                                  onMouseUp={this.psImgMouseUp}
+                                                  onMouseDown={this.bigImgMouseDown}
+                                                  ref={this.bigImgRef}
                                               />
                                           </div>
                                       )}

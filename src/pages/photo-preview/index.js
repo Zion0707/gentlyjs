@@ -6,22 +6,22 @@ import PhotoPreview from '@/components/photo-preview';
 const atlasImgList = [
     {
         url: 'http://dummyimage.com/200x100/ff3838&text=Hello',
-        bigUrl: 'http://dummyimage.com/400x200/ff3838&text=Hello',
+        bigUrl: 'http://dummyimage.com/800x400/ff3838&text=Hello',
         alt: 'Hello',
     },
     {
         url: 'http://dummyimage.com/200x100/ff9f1a&text=Photo',
-        bigUrl: 'http://dummyimage.com/400x200/ff9f1a&text=Photo',
+        bigUrl: 'http://dummyimage.com/800x400/ff9f1a&text=Photo',
         alt: 'Photo',
     },
     {
         url: 'http://dummyimage.com/200x100/c56cf0&text=Preview',
-        bigUrl: 'http://dummyimage.com/400x200/c56cf0&text=Preview',
+        bigUrl: 'http://dummyimage.com/800x400/c56cf0&text=Preview',
         alt: 'Preview',
     },
     {
         url: 'http://dummyimage.com/100x100/3ae374&text=!',
-        bigUrl: 'http://dummyimage.com/200x200/3ae374&text=!',
+        bigUrl: 'http://dummyimage.com/400x400/3ae374&text=!',
         alt: '！',
     },
 ];
