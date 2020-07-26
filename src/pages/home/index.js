@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Scene, Rect, Group, Round, Path } from '@/utils/gentjs';
+import { Scene,  Group, Path } from '@/utils/gentjs';
+// Rect,Round,
 import './index.less';
 class Home extends Component {
     constructor(props) {

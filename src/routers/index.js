@@ -14,6 +14,17 @@ const routers = [
         child: [],
     },
     {
+        path: '/photo-preview',
+        name: '图片预览组件',
+        component: Loadable({
+            loader: () => import('@/pages/photo-preview'),
+            loading: () => {
+                return <div>loading</div>;
+            },
+        }),
+        child: [],
+    },
+    {
         path: '/threejs',
         name: '3d场景',
         component: Loadable({
