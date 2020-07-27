@@ -253,19 +253,19 @@ class PhotoPreview extends React.Component {
         document.body.removeAttribute('photo-preview-show');
     };
 
-    //大图被执行拖拽操作
+    // 大图被执行拖拽操作
     bigImgMouseDown = (event) => {
         event.preventDefault();
         const ppiEl = this.ppiRef.current;
         const bigImgEl = this.bigImgRef.current;
-        let diffX = event.clientX - bigImgEl.offsetLeft;
-        let diffY = event.clientY - bigImgEl.offsetTop;
+        const diffX = event.clientX - bigImgEl.offsetLeft;
+        const diffY = event.clientY - bigImgEl.offsetTop;
         // 鼠标移动的时候
-        bigImgEl.onmousemove = (event) => {
-            let moveX = parseFloat(event.clientX - diffX);
-            let moveY = parseFloat(event.clientY - diffY);
-            let mx = moveX > 0 ? -moveX : Math.abs(moveX);
-            let my = moveY > 0 ? -moveY : Math.abs(moveY);
+        bigImgEl.onmousemove = (ev) => {
+            const moveX = parseFloat(ev.clientX - diffX);
+            const moveY = parseFloat(ev.clientY - diffY);
+            const mx = moveX > 0 ? -moveX : Math.abs(moveX);
+            const my = moveY > 0 ? -moveY : Math.abs(moveY);
             let sl = ppiEl.scrollLeft + mx * 0.1;
             let sr = ppiEl.scrollTop + my * 0.1;
             if (sl <= 0) {
