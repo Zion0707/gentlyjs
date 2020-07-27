@@ -64,8 +64,8 @@ class PhotoPreview extends React.Component {
     // 预览图片超出window宽或高的处理
     beyondWindow = () => {
         const { imgParentStyle, rotateDeg, increaseNum } = this.state;
-        const iWidth = parseFloat(imgParentStyle.width);
-        const iHeight = parseFloat(imgParentStyle.height);
+        const iWidth = parseFloat(imgParentStyle.width) + increaseNum * 2;
+        const iHeight = parseFloat(imgParentStyle.height) + increaseNum * 2;
         let ips = imgParentStyle;
         if (rotateDeg % 360 === 90 || rotateDeg % 360 === 270) {
             if (iHeight > window.innerWidth) {
