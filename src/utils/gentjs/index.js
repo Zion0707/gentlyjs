@@ -1,6 +1,7 @@
 /**
  *  gentjs （canvas 2d 类库）
  *
+ *  文档可参考：https://spritejs.org/#/zh-cn/api/group
  * */
 
 //  ---------------------------- 全局变量 start -----------------------------------
@@ -16,7 +17,7 @@ let globalElList = []; //所有节点存放处
  * 获取所传入的参数，并返回参数数组
  * @param { type: any, desc: 传入的参数 } args
  */
-const getArgsArr = args => {
+const getArgsArr = (args) => {
     // 获得所有传入的参数，如果第一个参数是数组的话，那么就直接取第一个数组参数作为循环对象，后面参数则省略
     if (args.length === 0) return;
     let argArr = [];
@@ -34,7 +35,7 @@ const getArgsArr = args => {
  * 根据传入的参数，返回数据类型
  * @param { type: any, desc: 传入的单个参数 } arg
  * */
-const getArgsType = arg => {
+const getArgsType = (arg) => {
     const typeArr = [
         'String',
         'Number',
@@ -49,7 +50,7 @@ const getArgsType = arg => {
         'Window',
     ];
     let type = '';
-    typeArr.forEach(item => {
+    typeArr.forEach((item) => {
         if (Object.prototype.toString.call(arg) === '[object ' + item + ']') {
             type = item;
         }
@@ -61,10 +62,9 @@ const getArgsType = arg => {
  * 根据传入的数值长度，生成随机字符串id
  * @param {type: number, desc: 随机数长度} num
  */
-const randomRangeId = num => {
+const randomRangeId = (num) => {
     var returnStr = '',
-        charStr =
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        charStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (var i = 0; i < num; i++) {
         var index = Math.round(Math.random() * (charStr.length - 1));
         returnStr += charStr.substring(index, index + 1);
@@ -75,7 +75,7 @@ const randomRangeId = num => {
 /**
  * 清除canvas画布内容
  */
-const clearCanvas = beforeItem => {
+const clearCanvas = (beforeItem) => {
     globalElList.forEach((item, index) => {
         // console.log(item);
         // 判断数组元素里哪个对象被更改
@@ -84,12 +84,7 @@ const clearCanvas = beforeItem => {
         }
     });
 
-    globalCtx.clearRect(
-        0,
-        0,
-        globalCanvas.getAttribute('width'),
-        globalCanvas.getAttribute('height')
-    );
+    globalCtx.clearRect(0, 0, globalCanvas.getAttribute('width'), globalCanvas.getAttribute('height'));
 };
 
 /**
@@ -154,9 +149,7 @@ function textEllipsis(ctx, groupLeft, groupTop, options) {
         if (measureWidth > params.width && i > 0 && rowCount !== limitRow) {
             // 如果是最后一行，显示计算文本
             let canvasText = isLimitRow ? measureText : textOfLine;
-            let xPos = conditionIndent
-                ? params.left + params.textIndent
-                : params.left;
+            let xPos = conditionIndent ? params.left + params.textIndent : params.left;
             let yPos = params.top + params.lineHeight / 2;
 
             // 写文字
@@ -184,10 +177,7 @@ function textEllipsis(ctx, groupLeft, groupTop, options) {
         }
     }
     if (rowCount !== limitRow) {
-        let xPos =
-            params.textIndent && rowCount === 0
-                ? params.left + params.textIndent
-                : params.left;
+        let xPos = params.textIndent && rowCount === 0 ? params.left + params.textIndent : params.left;
         let yPos = params.top + params.lineHeight / 2;
         if (params.fillColor) {
             ctx.fillStyle = params.fillColor;
@@ -200,8 +190,7 @@ function textEllipsis(ctx, groupLeft, groupTop, options) {
     }
 
     // 计算文字总高度
-    let textHeightVal =
-        rowCount < limitRow ? textHeight + params.lineHeight : textHeight;
+    let textHeightVal = rowCount < limitRow ? textHeight + params.lineHeight : textHeight;
     return textHeightVal;
 }
 
@@ -218,8 +207,8 @@ class Gent {
         if (_self.type === 'Group' || _self.type === 'Scene') {
             const argArr = getArgsArr(arguments);
             // 对传入的元素，根据对于相关方法进行绘制
-            let argArrDraw = groupAttr => {
-                argArr.forEach(item => {
+            let argArrDraw = (groupAttr) => {
+                argArr.forEach((item) => {
                     const itemTypeDrawFun = `_gent${item.type}Draw`;
                     if (_self[itemTypeDrawFun]) {
                         _self[itemTypeDrawFun](item);
@@ -276,23 +265,17 @@ class Gent {
         // 给对象添加事件标记
         this._event += this._event === '' ? oEvent : oEvent + '|';
         // oEvent 为事件，例如：click, mouseover ...
-        globalCanvas.addEventListener(oEvent, evt => {
+        globalCanvas.addEventListener(oEvent, (evt) => {
             let mx = evt.clientX;
             let my = evt.clientY;
             // 判断每个元素的边界，然后判定是点击了哪个元素，因为元素是越往后添加，层级越高，所以需要倒序进行判断
             for (let i = globalElList.length - 1; i > -1; i--) {
                 let xRange =
                     mx > globalElList[i].left + globalElList[i].groupLeft &&
-                    mx <
-                        globalElList[i].left +
-                            globalElList[i].groupLeft +
-                            globalElList[i].width;
+                    mx < globalElList[i].left + globalElList[i].groupLeft + globalElList[i].width;
                 let yRange =
                     my > globalElList[i].top + globalElList[i].groupTop &&
-                    my <
-                        globalElList[i].top +
-                            globalElList[i].groupTop +
-                            globalElList[i].height;
+                    my < globalElList[i].top + globalElList[i].groupTop + globalElList[i].height;
                 if (xRange && yRange) {
                     // 关键！！！，如果倒序第一个被触发的内容不是当前的这个元素，那么则退出循环，再次执行下个事件，进行对比，直到匹配成功！
                     if (globalElList[i]._id !== this._id) {
@@ -305,6 +288,7 @@ class Gent {
     }
 
     // --------------------------------------------- 以下带 _（下划线）的方法都是私有方法 -----------------------------------------------
+    // 获取真实的left和top值
     _getRealLeftTop(group, itemLeft, itemTop) {
         let groupLeft = 0;
         let groupTop = 0;
@@ -332,11 +316,7 @@ class Gent {
             fillColor: itemFillColor,
         } = item;
 
-        const { realLeft, realTop } = _self._getRealLeftTop(
-            _self,
-            itemLeft,
-            itemTop
-        );
+        const { realLeft, realTop } = _self._getRealLeftTop(_self, itemLeft, itemTop);
         // 绘制开始
         globalCtx.beginPath();
         // 描边矩形
@@ -369,22 +349,12 @@ class Gent {
             diameter: itemDiameter,
         } = item;
 
-        const { realLeft, realTop } = _self._getRealLeftTop(
-            _self,
-            itemLeft,
-            itemTop
-        );
+        const { realLeft, realTop } = _self._getRealLeftTop(_self, itemLeft, itemTop);
 
         // 绘制开始
         globalCtx.beginPath();
         // itemEndAngle 360 表示全圆
-        globalCtx.arc(
-            realLeft,
-            realTop,
-            itemDiameter / 2,
-            itemStartAngle,
-            itemEndAngle * 0.005555555556 * Math.PI
-        );
+        globalCtx.arc(realLeft, realTop, itemDiameter / 2, itemStartAngle, itemEndAngle * 0.005555555556 * Math.PI);
         // 描边圆形
         if (itemStrokeColor) {
             globalCtx.lineWidth = itemLineWidth;
@@ -413,22 +383,15 @@ class Gent {
             lineWidth: itemLineWidth,
             points: itemPoints,
         } = item;
-        const { realLeft, realTop } = _self._getRealLeftTop(
-            _self,
-            itemLeft,
-            itemTop
-        );
+        const { realLeft, realTop } = _self._getRealLeftTop(_self, itemLeft, itemTop);
 
         // 判断传入的points数组第一个元素是否是二维数组，如果是，那么则不需要转换直接用，否则需要转换
         // fixedArray方法，把一维数组转换成二维数组，例如[[0,0],[0, 10], [10, 0] ...]
         const newItemPoints = getArgsType(itemPoints[0]) === 'Array' ? itemPoints : fixedArray(itemPoints, 2);
-        
+
         globalCtx.beginPath();
         newItemPoints.forEach((item, index) => {
-            globalCtx[index === 0 ? 'moveTo' : 'lineTo'](
-                item[0] + realLeft,
-                item[1] + realTop
-            );
+            globalCtx[index === 0 ? 'moveTo' : 'lineTo'](item[0] + realLeft, item[1] + realTop);
         });
         // 是否闭合
         if (itemClose) {
@@ -469,7 +432,7 @@ class Gent {
         // 先清除画布，再重新渲染数据
         clearCanvas(beforeItem);
         // 根据类型调用相关绘制方法，重新进行绘制
-        globalElList.forEach(item => {
+        globalElList.forEach((item) => {
             const itemTypeDrawFun = `_gent${item.type}Draw`;
             if (_self[itemTypeDrawFun]) {
                 _self[itemTypeDrawFun](item);
@@ -672,5 +635,10 @@ class Path extends Gent {
     // 重载继承
     append() {}
 }
+
+/**
+ * class Sprite
+ *
+ * */
 
 export { Scene, Rect, Group, Label, Round, Path };

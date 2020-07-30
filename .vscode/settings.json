@@ -10,7 +10,7 @@
         "**/dist": true,
         // "**/build": true,
         "**/webpack.config.js": true,
-        // "**/.babelrc": true,
+        "**/.babelrc": true,
         "**/node_modules": true,
         "**/.gitignore": true,
         "**/_dll_vendors": true

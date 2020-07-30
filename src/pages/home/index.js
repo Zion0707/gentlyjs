@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Scene,  Group, Path } from '@/utils/gentjs';
-// Rect,Round,
+import { Scene, Group, Path, Rect, Round } from '@/utils/gentjs';
 import './index.less';
 class Home extends Component {
     constructor(props) {
@@ -17,32 +16,16 @@ class Home extends Component {
             left: 10,
             top: 10,
         });
-        // 路径
-        const path1 = new Path({
-            left: 20,
-            top: 20,
-            strokeColor: 'blue',
-            // fillColor: 'red',
-            points: [0, 0, 100, 0, 100, 100, 0, 100, 0, 0],
-            // points: [[0, 0], [100, 0], [100, 100], [0, 100], [0, 0]],
+        const round1 = new Round({
+            strokeColor: '#000000',
+            lineWidth: 1,
+            startAngle: 0,
+            endAngle: 360,
+            diameter: 50,
         });
 
-        group1.append(path1);
+        group1.append(round1);
         scene.append(group1);
-
-        document
-            .getElementsByTagName('canvas')[0]
-            .addEventListener('click', () => {
-                // group1.append(rect1, rect2);
-                // rect1.attr({
-                //     left: 30,
-                //     top: 40,
-                // })
-                // group1.attr({
-                //     left: 20,
-                //     top: 20,
-                // });
-            });
     }
     componentDidMount() {
         this.init();
