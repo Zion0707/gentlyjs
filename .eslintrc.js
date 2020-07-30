@@ -5,7 +5,13 @@ module.exports = {
         es6: true, // 启用除了 modules 以外的所有 ECMAScript 6 特性（该选项会自动设置 ecmaVersion 解析器选项为 6）
     },
     // 一个配置文件可以被基础配置中的已启用的规则继承。
-    extends: ['airbnb', 'plugin:prettier/recommended', 'prettier/flowtype', 'prettier/react', 'prettier/standard'],
+    extends: [
+        'airbnb',
+        'plugin:prettier/recommended',
+        'prettier/flowtype',
+        'prettier/react',
+        'prettier/standard',
+    ],
     // 自定义全局变量
     globals: {
         document: true,
@@ -66,7 +72,16 @@ module.exports = {
         'import/no-unresolved': [
             2,
             {
-                ignore: ['_less', '_components', '_utils', '_consts', '_statics', '_src', '_service', '_store'], // @ 是设置的路径别名
+                ignore: [
+                    '_less',
+                    '_components',
+                    '_utils',
+                    '_consts',
+                    '_statics',
+                    '_src',
+                    '_service',
+                    '_store',
+                ], // @ 是设置的路径别名
             },
         ],
         camelcase: 0,

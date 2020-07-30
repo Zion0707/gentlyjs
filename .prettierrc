@@ -1,6 +1,6 @@
 {
-    "prettier/prettier": ["error", {"singleQuote": true, "parser": "flow"}],
-    "printWidth": 120,
+    "prettier/prettier": ["error", { "singleQuote": true, "parser": "flow" }],
+    "printWidth": 100,
     "tabWidth": 4,
     "endOfLine": "auto",
     "semi": true,
@@ -8,5 +8,4 @@
     "trailingComma": "es5",
     "bracketSpacing": true,
     "jsxBracketSameLine": false
-  }
-  
+}

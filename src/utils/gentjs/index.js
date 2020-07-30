@@ -84,7 +84,12 @@ const clearCanvas = (beforeItem) => {
         }
     });
 
-    globalCtx.clearRect(0, 0, globalCanvas.getAttribute('width'), globalCanvas.getAttribute('height'));
+    globalCtx.clearRect(
+        0,
+        0,
+        globalCanvas.getAttribute('width'),
+        globalCanvas.getAttribute('height')
+    );
 };
 
 /**
@@ -177,7 +182,8 @@ function textEllipsis(ctx, groupLeft, groupTop, options) {
         }
     }
     if (rowCount !== limitRow) {
-        let xPos = params.textIndent && rowCount === 0 ? params.left + params.textIndent : params.left;
+        let xPos =
+            params.textIndent && rowCount === 0 ? params.left + params.textIndent : params.left;
         let yPos = params.top + params.lineHeight / 2;
         if (params.fillColor) {
             ctx.fillStyle = params.fillColor;
@@ -205,6 +211,7 @@ class Gent {
     append() {
         const _self = this;
         if (_self.type === 'Group' || _self.type === 'Scene') {
+            // console.log(arguments);
             const argArr = getArgsArr(arguments);
             // 对传入的元素，根据对于相关方法进行绘制
             let argArrDraw = (groupAttr) => {
@@ -253,6 +260,7 @@ class Gent {
             }
             // 属性更改之后，需要重新渲染画布，这里给了一个 beforeItem 是方便记录哪个元素被修改
             let beforeItem = Object.assign({}, this);
+            console.log(beforeItem);
             this._redraw(beforeItem);
         }
     }
@@ -303,6 +311,44 @@ class Gent {
             realTop,
         };
     }
+
+    imgs = [];
+    // Sprite图片 - 绘制
+    _gentSpriteDraw = async (item) => {
+        const _self = this;
+        const {
+            left: itemLeft,
+            top: itemTop,
+            url: itemUrl,
+            width: itemWidth,
+            height: itemHeight,
+        } = item;
+        const { realLeft, realTop } = _self._getRealLeftTop(_self, itemLeft, itemTop);
+
+        await this.imgs.push(itemUrl);
+        if (itemUrl === this.imgs[this.imgs.length - 1]) {
+            console.log(itemUrl);
+            this.imgs = [];
+            // const img = new Image();
+            // img.src = itemUrl;
+            // // console.log(img);
+            // img.onload = () => {
+            //     // await console.log(img);
+            //     const imgWidth = itemWidth || img.width;
+            //     const imgHeight = itemHeight || img.height;
+            //     // 因为图片加载是异步的，所以需要图片完全加载出来的时候，再进行一次绘制
+            //     globalElList.forEach((gel) => {
+            //         const itemTypeDrawFun = `_gent${gel.type}Draw`;
+            //         if (item._id === gel._id) {
+            //             globalCtx.drawImage(img, realLeft, realTop, imgWidth, imgHeight);
+            //         } else if (_self[itemTypeDrawFun]) {
+            //             _self[itemTypeDrawFun](gel);
+            //         }
+            //     });
+            // };
+        }
+    };
+
     // Rect矩形 - 绘制
     _gentRectDraw(item) {
         const _self = this;
@@ -354,7 +400,13 @@ class Gent {
         // 绘制开始
         globalCtx.beginPath();
         // itemEndAngle 360 表示全圆
-        globalCtx.arc(realLeft, realTop, itemDiameter / 2, itemStartAngle, itemEndAngle * 0.005555555556 * Math.PI);
+        globalCtx.arc(
+            realLeft,
+            realTop,
+            itemDiameter / 2,
+            itemStartAngle,
+            itemEndAngle * 0.005555555556 * Math.PI
+        );
         // 描边圆形
         if (itemStrokeColor) {
             globalCtx.lineWidth = itemLineWidth;
@@ -372,7 +424,7 @@ class Gent {
 
     // Path路径 - 绘制
     _gentPathDraw(item) {
-        console.log(item);
+        // console.log(item);
         const _self = this;
         const {
             left: itemLeft,
@@ -387,7 +439,8 @@ class Gent {
 
         // 判断传入的points数组第一个元素是否是二维数组，如果是，那么则不需要转换直接用，否则需要转换
         // fixedArray方法，把一维数组转换成二维数组，例如[[0,0],[0, 10], [10, 0] ...]
-        const newItemPoints = getArgsType(itemPoints[0]) === 'Array' ? itemPoints : fixedArray(itemPoints, 2);
+        const newItemPoints =
+            getArgsType(itemPoints[0]) === 'Array' ? itemPoints : fixedArray(itemPoints, 2);
 
         globalCtx.beginPath();
         newItemPoints.forEach((item, index) => {
@@ -638,7 +691,29 @@ class Path extends Gent {
 
 /**
  * class Sprite
- *
+ * Sprite 元素用来绘制图片。
  * */
+class Sprite extends Gent {
+    constructor(argObj) {
+        super();
+        const def = {
+            left: 0,
+            top: 0,
+            url: '', //图片地址
+            width: '', //元素宽度，不设定的话一般根据内容自适应
+            height: '', //元素高度，不设定的话一般根据内容自适应
+            type: 'Sprite', //标识，为了好区分
+            _id: randomRangeId(20), //生成随机id，唯一标识
+            _event: '', //标识,为了知道有哪些事件
+        };
+        const config = Object.assign(def, argObj);
+        // 把参数暴露出去
+        for (let item in config) {
+            this[item] = config[item];
+        }
+    }
+    // 重载继承
+    append() {}
+}
 
-export { Scene, Rect, Group, Label, Round, Path };
+export { Scene, Rect, Group, Label, Round, Path, Sprite };
