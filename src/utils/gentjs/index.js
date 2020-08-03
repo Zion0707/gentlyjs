@@ -329,23 +329,24 @@ class Gent {
         if (itemUrl === this.imgs[this.imgs.length - 1]) {
             console.log(itemUrl);
             this.imgs = [];
-            // const img = new Image();
-            // img.src = itemUrl;
-            // // console.log(img);
-            // img.onload = () => {
-            //     // await console.log(img);
-            //     const imgWidth = itemWidth || img.width;
-            //     const imgHeight = itemHeight || img.height;
-            //     // 因为图片加载是异步的，所以需要图片完全加载出来的时候，再进行一次绘制
-            //     globalElList.forEach((gel) => {
-            //         const itemTypeDrawFun = `_gent${gel.type}Draw`;
-            //         if (item._id === gel._id) {
-            //             globalCtx.drawImage(img, realLeft, realTop, imgWidth, imgHeight);
-            //         } else if (_self[itemTypeDrawFun]) {
-            //             _self[itemTypeDrawFun](gel);
-            //         }
-            //     });
-            // };
+            const img = new Image();
+            img.src = itemUrl;
+            img.onload = () => {
+                const imgWidth = itemWidth || img.width;
+                const imgHeight = itemHeight || img.height;
+                // 因为图片加载是异步的，所以需要图片完全加载出来的时候，再进行一次绘制
+                globalElList.forEach((gel) => {
+                    const itemTypeDrawFun = `_gent${gel.type}Draw`;
+                    if (gel.type === 'Sprite') {
+                        const gelImg = new Image();
+                        gelImg.src = gel.url;
+                        console.log(gelImg);
+                        globalCtx.drawImage(gelImg, realLeft, realTop, imgWidth, imgHeight);
+                    } else if (_self[itemTypeDrawFun]) {
+                        _self[itemTypeDrawFun](gel);
+                    }
+                });
+            };
         }
     };
 

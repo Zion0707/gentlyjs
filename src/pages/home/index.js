@@ -40,8 +40,8 @@ class Home extends Component {
             left: 100,
         });
         const sprite2 = new Sprite({
-            left: 0,
-            top: 0,
+            left: 20,
+            top: 20,
             // url: 'http://dummyimage.com/200x100/FF6600',
             url: spriteUrl2,
         });
