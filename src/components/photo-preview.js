@@ -66,6 +66,8 @@ class PhotoPreview extends React.Component {
         const { imgParentStyle, rotateDeg, increaseNum } = this.state;
         const iWidth = parseFloat(imgParentStyle.width) + increaseNum * 2;
         const iHeight = parseFloat(imgParentStyle.height) + increaseNum * 2;
+        const ppiEl = this.ppiRef.current;
+
         let ips = imgParentStyle;
         if (rotateDeg % 360 === 90 || rotateDeg % 360 === 270) {
             if (iHeight > window.innerWidth) {
@@ -78,6 +80,35 @@ class PhotoPreview extends React.Component {
             } else {
                 ips = { ...ips, top: 'auto' };
             }
+        } else if (
+            (rotateDeg % 360 === -90 && iWidth > iHeight) ||
+            (rotateDeg % 360 === -270 && iWidth > iHeight)
+        ) {
+            // 如果是-90或-270，并且图片宽大于高的话，那么则需要做兼容处理
+            let left = 'auto';
+            let top = 'auto';
+            if (iHeight > ppiEl.clientWidth) {
+                left = `${-(iHeight / 2) + increaseNum * 2}px`;
+            }
+            if (iWidth > ppiEl.clientHeight) {
+                top = `${iHeight / 2 + increaseNum / 2}px`;
+            }
+            ips = { ...ips, left: `${left}`, top: `${top}` };
+        } else if (
+            (rotateDeg % 360 === -90 && iHeight > iWidth) ||
+            (rotateDeg % 360 === -270 && iHeight > iWidth)
+        ) {
+            // 如果是-90或-270，并且图片高大于宽的话，那么则需要做兼容处理
+            let left = 'auto';
+            let top = 'auto';
+            if (iHeight > ppiEl.clientWidth) {
+                left = `${iWidth / 2}px`;
+            }
+            if (iWidth > ppiEl.clientHeight) {
+                top = `${-(iWidth / 2) + increaseNum * 2}px`;
+            }
+
+            ips = { ...ips, left: `${left}`, top: `${top}` };
         } else {
             if (iWidth > window.innerWidth) {
                 ips = { ...ips, left: `${increaseNum}px` };
@@ -110,7 +141,10 @@ class PhotoPreview extends React.Component {
         }
         this.setState(
             {
-                imgParentStyle: Object.assign(imgParentStyle, { width: `${width}px`, height: `${height}px` }),
+                imgParentStyle: Object.assign(imgParentStyle, {
+                    width: `${width}px`,
+                    height: `${height}px`,
+                }),
             },
             () => {
                 this.beyondWindow();
@@ -133,7 +167,10 @@ class PhotoPreview extends React.Component {
         }
         this.setState(
             {
-                imgParentStyle: Object.assign(imgParentStyle, { width: `${width}px`, height: `${height}px` }),
+                imgParentStyle: Object.assign(imgParentStyle, {
+                    width: `${width}px`,
+                    height: `${height}px`,
+                }),
             },
             () => {
                 this.beyondWindow();
@@ -150,7 +187,9 @@ class PhotoPreview extends React.Component {
         const iRotateDeg = rotateDeg - 90;
         this.setState(
             {
-                imgParentStyle: Object.assign(imgParentStyle, { transform: `rotate(${iRotateDeg}deg)` }),
+                imgParentStyle: Object.assign(imgParentStyle, {
+                    transform: `rotate(${iRotateDeg}deg)`,
+                }),
                 rotateDeg: iRotateDeg,
             },
             () => {
@@ -168,7 +207,9 @@ class PhotoPreview extends React.Component {
         const iRotateDeg = rotateDeg + 90;
         this.setState(
             {
-                imgParentStyle: Object.assign(imgParentStyle, { transform: `rotate(${iRotateDeg}deg)` }),
+                imgParentStyle: Object.assign(imgParentStyle, {
+                    transform: `rotate(${iRotateDeg}deg)`,
+                }),
                 rotateDeg: iRotateDeg,
             },
             () => {
@@ -369,7 +410,17 @@ class PhotoPreview extends React.Component {
 
     render() {
         const { alt, url } = this.props;
-        const { bigUrl, tool, figureEl, loadEl, imgAttr, imgParentStyle, imgIndex, imgs, increaseNum } = this.state;
+        const {
+            bigUrl,
+            tool,
+            figureEl,
+            loadEl,
+            imgAttr,
+            imgParentStyle,
+            imgIndex,
+            imgs,
+            increaseNum,
+        } = this.state;
         const iParentStyle = { ...imgParentStyle };
         const iSpanStyle = {
             width: `${parseFloat(imgParentStyle.width) + increaseNum * 2}px`,
@@ -391,7 +442,10 @@ class PhotoPreview extends React.Component {
                                       {loadEl ? (
                                           <div className="photo-preview__loading"></div>
                                       ) : (
-                                          <div className="photo-preview__img-wrap" style={iParentStyle}>
+                                          <div
+                                              className="photo-preview__img-wrap"
+                                              style={iParentStyle}
+                                          >
                                               <span
                                                   className="photo-preview__img-placeholder"
                                                   style={{
@@ -410,16 +464,28 @@ class PhotoPreview extends React.Component {
                                       )}
                                       <div className="photo-preview__tool">
                                           {tool.toSmall ? (
-                                              <i className="iconfont icon-to-small" onClick={this.toSmallEvent}></i>
+                                              <i
+                                                  className="iconfont icon-to-small"
+                                                  onClick={this.toSmallEvent}
+                                              ></i>
                                           ) : null}
                                           {tool.toBig ? (
-                                              <i className="iconfont icon-to-big" onClick={this.toBigEvent}></i>
+                                              <i
+                                                  className="iconfont icon-to-big"
+                                                  onClick={this.toBigEvent}
+                                              ></i>
                                           ) : null}
                                           {tool.turnLeft ? (
-                                              <i className="iconfont icon-turn-left" onClick={this.turnLeftEvent}></i>
+                                              <i
+                                                  className="iconfont icon-turn-left"
+                                                  onClick={this.turnLeftEvent}
+                                              ></i>
                                           ) : null}
                                           {tool.turnRight ? (
-                                              <i className="iconfont icon-turn-right" onClick={this.turnRightEvent}></i>
+                                              <i
+                                                  className="iconfont icon-turn-right"
+                                                  onClick={this.turnRightEvent}
+                                              ></i>
                                           ) : null}
 
                                           {imgIndex !== '' && imgs.length > 1 ? (
@@ -438,7 +504,10 @@ class PhotoPreview extends React.Component {
                                           ) : null}
 
                                           {tool.close ? (
-                                              <i className="iconfont icon-close" onClick={this.closeEvent}></i>
+                                              <i
+                                                  className="iconfont icon-close"
+                                                  onClick={this.closeEvent}
+                                              ></i>
                                           ) : null}
                                       </div>
                                   </div>
